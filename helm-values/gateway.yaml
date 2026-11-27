@@ -1,0 +1,33 @@
+image:
+  repository: docker.io/CHANGE_ME/rsoi-gateway
+  tag: latest
+
+containerPort: 8080
+service:
+  port: 8080
+
+env:
+  - name: APP_SERVICES_FLIGHT
+    value: http://flight-service:8060
+  - name: APP_SERVICES_TICKET
+    value: http://ticket-service:8070
+  - name: APP_SERVICES_BONUS
+    value: http://bonus-service:8050
+  - name: SPRING_RABBITMQ_HOST
+    value: rabbitmq
+  - name: SPRING_RABBITMQ_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: rsoi-rabbitmq
+        key: username
+  - name: SPRING_RABBITMQ_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: rsoi-rabbitmq
+        key: password
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""
+  path: /

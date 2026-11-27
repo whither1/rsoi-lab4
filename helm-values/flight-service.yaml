@@ -1,0 +1,21 @@
+image:
+  repository: docker.io/CHANGE_ME/rsoi-flight-service
+  tag: latest
+
+containerPort: 8060
+service:
+  port: 8060
+
+env:
+  - name: SPRING_DATASOURCE_URL
+    value: jdbc:postgresql://postgres:5432/flights
+  - name: SPRING_DATASOURCE_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: rsoi-db
+        key: username
+  - name: SPRING_DATASOURCE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: rsoi-db
+        key: password
