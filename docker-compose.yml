@@ -1,0 +1,101 @@
+services:
+  postgres:
+    image: library/postgres:13
+    container_name: postgres
+    restart: on-failure
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./postgres/:/docker-entrypoint-initdb.d/
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: on-failure
+    environment:
+      RABBITMQ_DEFAULT_USER: rsoi
+      RABBITMQ_DEFAULT_PASS: rsoi
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  flight-service:
+    image: ${DOCKERHUB_USER:-local}/rsoi-flight-service:${IMAGE_TAG:-latest}
+    build:
+      context: ./v1
+      dockerfile: FlightService/Dockerfile
+    container_name: flight-service
+    restart: on-failure
+    ports:
+      - "8060:8060"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  bonus-service:
+    image: ${DOCKERHUB_USER:-local}/rsoi-bonus-service:${IMAGE_TAG:-latest}
+    build:
+      context: ./v1
+      dockerfile: BonusService/Dockerfile
+    container_name: bonus-service
+    restart: on-failure
+    ports:
+      - "8050:8050"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  ticket-service:
+    image: ${DOCKERHUB_USER:-local}/rsoi-ticket-service:${IMAGE_TAG:-latest}
+    build:
+      context: ./v1
+      dockerfile: TicketService/Dockerfile
+    container_name: ticket-service
+    restart: on-failure
+    ports:
+      - "8070:8070"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  gateway:
+    image: ${DOCKERHUB_USER:-local}/rsoi-gateway:${IMAGE_TAG:-latest}
+    build:
+      context: ./v1
+      dockerfile: GatewayService/Dockerfile
+    container_name: gateway
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_RABBITMQ_USERNAME: rsoi
+      SPRING_RABBITMQ_PASSWORD: rsoi
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      flight-service:
+        condition: service_started
+      bonus-service:
+        condition: service_started
+      ticket-service:
+        condition: service_started
+
+volumes:
+  db-data:

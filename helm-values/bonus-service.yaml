@@ -1,0 +1,21 @@
+image:
+  repository: docker.io/CHANGE_ME/rsoi-bonus-service
+  tag: latest
+
+containerPort: 8050
+service:
+  port: 8050
+
+env:
+  - name: SPRING_DATASOURCE_URL
+    value: jdbc:postgresql://postgres:5432/privileges
+  - name: SPRING_DATASOURCE_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: rsoi-db
+        key: username
+  - name: SPRING_DATASOURCE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: rsoi-db
+        key: password

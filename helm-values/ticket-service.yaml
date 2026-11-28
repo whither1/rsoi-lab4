@@ -1,0 +1,21 @@
+image:
+  repository: docker.io/CHANGE_ME/rsoi-ticket-service
+  tag: latest
+
+containerPort: 8070
+service:
+  port: 8070
+
+env:
+  - name: SPRING_DATASOURCE_URL
+    value: jdbc:postgresql://postgres:5432/tickets
+  - name: SPRING_DATASOURCE_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: rsoi-db
+        key: username
+  - name: SPRING_DATASOURCE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: rsoi-db
+        key: password

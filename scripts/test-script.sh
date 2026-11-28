@@ -10,6 +10,11 @@ namespace=${3:-${NAMESPACE}}
 
 path=$(dirname "$0")
 
+newman_args=()
+if [[ -n ${BASE_URL:-} ]]; then
+  newman_args+=(--env-var "baseUrl=$BASE_URL")
+fi
+
 timed() {
   end=$(date +%s)
   dt=$(($end - $1))
@@ -29,6 +34,7 @@ success() {
     --folder=success \
     --export-environment "$variant"/postman/environment.json \
     --environment "$variant"/postman/environment.json \
+    "${newman_args[@]}" \
     "$variant"/postman/collection.json
 }
 
@@ -40,11 +46,14 @@ step() {
 
   kubectl scale deployment "$deployment" -n "$namespace" --replicas "$replicas" 
 
+  kubectl rollout status "deployment/$deployment" -n "$namespace" --timeout=180s
+
   newman run \
     --delay-request=100 \
     --folder=step"$step" \
     --export-environment "$variant"/postman/environment.json \
     --environment "$variant"/postman/environment.json \
+    "${newman_args[@]}" \
     "$variant"/postman/collection.json
 
   printf "=== Step %d completed ===\n" "$step"

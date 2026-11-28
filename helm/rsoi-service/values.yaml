@@ -1,0 +1,42 @@
+# Значения по умолчанию. Имя сервиса берётся из имени Helm-релиза,
+# поэтому Service и Deployment получают имя gateway / flight-service / ...
+replicaCount: 1
+
+image:
+  repository: ""
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+
+jvm:
+  maxRamPercentage: 70
+
+env: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+probes:
+  path: /manage/health
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  failureThreshold: 12
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  host: ""
+  path: /
